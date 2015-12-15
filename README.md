@@ -12,32 +12,37 @@ research is based on).
 Using git for version control also serves as a universal "undo button" throughout
 the entire project.
 
-The Javascript files were tested with node v.5.0.0 available here:
-https://nodejs.org/en/. The code utilizes features from ES2015, such as lexical
-scope via let or arrow functions.
+## the code
+
+The Javascript files were tested with node v5.2.0 available here:
+
+[Node.js](https://nodejs.org/en/ "Node.js")
+
+The code relies on features from ES2015, such as lexical
+scope via let, arrow functions, Promises and template strings, thus a modern
+version of node.js is needed.
 
 ## Toshi: QueryToshiData.js
 
-Initially, the program queries Coinbase's Toshi remotely (over the internet)
-via their REST-API, an approach that not feasible for the getting volumes and
-fees for
+install via ``npm install lodash sqlite3``
 
-The setup is a local instance of Coinbase's Toshi Bitcoin-node, it stores
-Blockchain-data within a Postgres-database which makes it easier to quickly run
-large, fine-grained queries.
+The data-source for Bitcoin transactions, namely timestamps,
+transaction-hashes, volumes transacted and fees are from pulled
+Coinbase's Toshi API remotely:
 
-## Bitcoin-Core: JSON-RPC
+[Toshi API Documentation](https://toshi.io/docs/ "Toshi API Documentation")
 
-The data-source for Bitcoin transactions themselves, namely timestamps,
-transaction-hashes, volumes transacted and fees are pulled out of version 0.11.2
-of bitcoin-core.
+## Bitcoin-Core - JSON-RPC: bitcoincore.js
+
+Data about network utilization (Daily averages of block-size) is provided via verison 0.11.2 of bitcoin-core.
 
 In order to use the full API of bitcoin-core, bitcoind (or bitcoin-qt, which in
 turn invokes bitcoind) have to be run with the flags "-reindex" and "-txindex"
 after the local blockchain is in sync with the overall network.
 
 The JSON-RPC-API is queried via the node-bitcoin package, available here:
-https://www.npmjs.com/package/bitcoin
+[NPM bitcoin package](https://www.npmjs.com/package/bitcoin "NPM bitcoin package"),
+ install it via ``npm install bitcoin``.
 
 ## SQLite
 
@@ -50,11 +55,3 @@ be able to run SQL queries on the large dataset.
 The aforementioned queries are executed out of R within R-Studio, to get the
 results in R's native format. The R-package supplying this functionality is
 sqldf, availabe here: https://github.com/ggrothendieck/sqldf
-
-
-## Exchange rates per block
-
-Microtransactions are being viewed in a US-Dollar context to make them more
-relatable (cup of coffee, song on iTunes, mobile app). To accomplish this, a
-transaction's volume (amount) has to be expressed in USD at (roughly) the time
-of the transaction.

@@ -11,14 +11,19 @@ var db = new sqlite3.Database('blockChainData');
 
 // block 336861 first block of 2015.
 // block 381400 occured on October 31. 2015 (Bitcoin's Birthday)
-blockRange(336861, 336861);
+blockRange(336861, 341000);
+// Can I launch blockRange in steps of range 5000?
 
 //Todo: implement warning for number of queries (approximation)
 
 function blockRange(beginning, end) {
+  let rangeOfBlocks = end - beginning;
+  let blockSampleSize = 144;
+  let numberOfBlockQueries = rangeOfBlocks/blockSampleSize;
+  console.log("Initiating " + numberOfBlockQueries + " sample queries over " + rangeOfBlocks + " blocks.");
 	for (var height = beginning; height <= end; height++) {
 		// on average: 144 blocks per day.
-		if (height % 1 == 0) {
+		if (height % blockSampleSize == 0) {
 			blocks.push(new Promise(resolve => {
   				var url = toshiBlockPath + height.toString();
   				https.get(url, res => {
@@ -48,7 +53,7 @@ Promise.all(blocks).then(blocks => {
     }))
     let numberOfTransactions = transactionHashes.length;
     console.log(numberOfTransactions + " transactions extracted, initiating queries ...");
-    for (let j = 1; j <= transactionHashes.length; j += 200) {
+    for (let j = 1; j <= transactionHashes.length; j += 100) {
       var url = toshiTxPath + transactionHashes[j];
       transactions.push(new Promise(resolve => https.get(url, res => {
           res.setEncoding('utf8');
