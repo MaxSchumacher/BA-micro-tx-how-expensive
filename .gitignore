@@ -2,3 +2,5 @@ getTransactions/node_modules
 getTransactions/transactions
 data
 blockChainData
+.idea
+getTransactions/learningPromises.js
