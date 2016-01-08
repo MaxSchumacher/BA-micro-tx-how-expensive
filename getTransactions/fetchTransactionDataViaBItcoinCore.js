@@ -1,14 +1,25 @@
 'use strict';
-let bitcoin = require('bitcoin');
-let _       = require('lodash');
-let fs      = require('fs');
+
+let bitcoin = require('bitcoin'),
+          _ = require('lodash'),
+         fs = require('fs'),
+      async = require('async');
+
+const fileNameToWriteResultsTo = "BACKUPFullYear2015.csv";
+
+const concurrency = 20, // Of async.queue payload.
+       sampleSize = 24; // Taking a sample of 6 blocks per day (144/24)
+
+//block-ranges to fetch
+const start = 336861, // first block of 2015
+        end = 391182; // first block of 2016
 
 const client = new bitcoin.Client({
-  host: 'localhost',
-  port: 8332,
-  user: 'bitcoinrpc',
-  pass: 'BviubSoy6FtfhzBVgf3knuQr3M83L4EpGzzEsmHcJaDA',
-  timeout: 1000000
+    host: 'localhost',
+    port: 8332,
+    user: 'bitcoinrpc',
+    pass: 'BviubSoy6FtfhzBVgf3knuQr3M83L4EpGzzEsmHcJaDA',
+    timeout: 99999999
 });
 
 const fetchBlockHashes = (height) => {
@@ -89,32 +100,36 @@ const sumOutputs = (tx) => {
     return sum;
 };
 
-/*var cargo = async.cargo((tasks, callback) => {
-    for ( let i = 0; i < tasks.length; i++) {
-        console.log('hello ' + tasks[i].name);
-    }
-    callback();
-}, 30);
+//fails for transactions with lots of inputs (too many simultaneous requests)
+let q = async.queue((transactions, callback) => {
+    getrawtransaction(transactions)
+        .then(fetchAndCalculateTransactioncosts)
+        .then(result => {
+            fs.appendFile("../data/" + fileNameToWriteResultsTo,
+                `${result[0]}` + ", " +
+                `${result[1]}` + ", " +
+                `${result[1] - result[2]}` +"\n"
+            );
+            callback();
+        }
+    );
+}, concurrency);
 
-cargo.push();*/
-
-for (let height = 330000; height <= 331000; height++) {
-    //Taking a sample of 6 blocks per day (144/24)
-    if (height % 24 == 0) {
-        fetchBlockHashes(height)
-        .then(fetchBlocks)
-        .then(getTransactionHashes)
-        .then(transactionHashes => {
-            for (let transactions of transactionHashes) {
-                (getrawtransaction(transactions))
-                    .then(fetchAndCalculateTransactioncosts)
-                    .then(result => {
-                        fs.appendFile("transactionData.csv",
-                            `${result[0]}` + ", " +
-                            `${result[1]}` + ", " +
-                            `${result[1]-result[2]}` +"\n"
-                        )});
-            }
-        })
+const getBlockRange = (start, end) => {
+    for (let height = start; height <= end; height++) {
+        if (height % sampleSize == 0) {
+            fetchBlockHashes(height)
+                .then(fetchBlocks)
+                .then(getTransactionHashes)
+                .then(transactionHashes => {
+                    for (let transactions of transactionHashes) {
+                        q.push(transactions, function (err) {
+                            if (err) throw err;
+                        });
+                    }
+                })
+        }
     }
-}
+};
+
+getBlockRange(start, end);
