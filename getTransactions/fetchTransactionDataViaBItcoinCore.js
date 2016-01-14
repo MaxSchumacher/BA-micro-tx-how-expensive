@@ -5,9 +5,9 @@ let bitcoin = require('bitcoin'),
          fs = require('fs'),
       async = require('async');
 
-const fileNameToWriteResultsTo = "BACKUPFullYear2015.csv";
+const fileNameToWriteResultsTo = "December2015.csv";
 
-const concurrency = 20, // Of async.queue payload.
+const concurrency = 5, // Of async.queue payload.
        sampleSize = 24; // Taking a sample of 6 blocks per day (144/24)
 
 //block-ranges to fetch

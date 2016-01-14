@@ -4,3 +4,6 @@ data
 blockChainData
 .idea
 getTransactions/learningPromises.js
+latex/
+analysis/.RData
+analysis/.Rhistory
